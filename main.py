@@ -30,7 +30,6 @@ async def randomrole(interaction: discord.Interaction):
     max_players = 5  # 最大参加人数
     reaction_emoji = "👍"
 
-    # メッセージ送信
     message = await interaction.response.send_message(f"試合に参加する方はリアクションを押してください（残り{countdown}秒）", ephemeral=False)
     msg = await interaction.original_response()
     await msg.add_reaction(reaction_emoji)
@@ -40,9 +39,15 @@ async def randomrole(interaction: discord.Interaction):
         await asyncio.sleep(1)
         await msg.edit(content=f"試合に参加する方はリアクションを押してください（残り{i}秒）")
 
+        updated_msg = await interaction.channel.fetch_message(msg.id)
+        reaction = discord.utils.get(updated_msg.reactions, emoji=reaction_emoji)
+        users = [user async for user in reaction.users() if not user.bot]
+
+        if (len(users) == 5):
+            break
+
     await msg.edit(content="試合に参加する方はリアクションを押してください（投票終了）")
 
-    # 最終的な参加者リストを取得
     updated_msg = await interaction.channel.fetch_message(msg.id)
     reaction = discord.utils.get(updated_msg.reactions, emoji=reaction_emoji)
     users = [user async for user in reaction.users() if not user.bot]
@@ -51,7 +56,6 @@ async def randomrole(interaction: discord.Interaction):
         await interaction.followup.send("誰も参加しませんでした。")
         return
 
-    # 役割リスト
     roles = ["デュエリスト", "イニシエーター", "センチネル", "コントローラー"]
     assigned_roles = {}
 
@@ -73,5 +77,4 @@ async def randomrole(interaction: discord.Interaction):
 
     await interaction.followup.send(f"{result_message}")
 
-# ボットを実行
 bot.run(BOT_TOKEN)
